@@ -364,6 +364,8 @@ describe('getUserAttendance', () => {
 - 예: `feature/checkClass`, `feature/admin-dashboard`
 
 ---
+### 14 에이전트 답변
+- 답변 및 주석 등은 모두 한국어로 작성할 것
 
 ## 참고 자료
 - [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript)
