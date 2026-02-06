@@ -1,0 +1,142 @@
+.create-post-card {
+    background-color: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+
+.cp-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 1rem;
+}
+
+.cp-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.create-post-card textarea {
+    width: 100%;
+    border: none;
+    resize: none;
+    padding: 8px 0;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+}
+
+.cp-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.cp-tools {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tool-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.tool-btn:hover {
+    background-color: var(--bg-body);
+    color: var(--primary-color);
+}
+
+.post-submit-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.post-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.image-preview {
+    position: relative;
+    margin: 1rem 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.image-preview img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.remove-image-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.attachments-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 1rem 0;
+}
+
+.attachment-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--bg-body);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.attachment-preview-item button {
+    color: var(--text-secondary);
+    padding: 2px;
+    border-radius: 50%;
+}
+
+.attachment-preview-item button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
