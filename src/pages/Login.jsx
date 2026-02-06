@@ -6,6 +6,7 @@ import '../styles/auth.css';
 const Login = () => {
     const [formData, setFormData] = useState({ id: '', password: '' });
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { login } = useAppContext();
     const navigate = useNavigate();
 
@@ -13,13 +14,18 @@ const Login = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setIsSubmitting(true);
+
         try {
-            login(formData.id, formData.password);
+            await login(formData.id, formData.password);
             navigate('/');
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Login failed. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -32,18 +38,32 @@ const Login = () => {
                     <div className="form-group">
                         <label>Username (ID)</label>
                         <input
-                            type="text" name="id" required
-                            value={formData.id} onChange={handleChange}
+                            type="text"
+                            name="id"
+                            required
+                            value={formData.id}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
                         />
                     </div>
                     <div className="form-group">
                         <label>Password</label>
                         <input
-                            type="password" name="password" required
-                            value={formData.password} onChange={handleChange}
+                            type="password"
+                            name="password"
+                            required
+                            value={formData.password}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
                         />
                     </div>
-                    <button type="submit" className="primary-btn full-width">Login</button>
+                    <button
+                        type="submit"
+                        className="primary-btn full-width"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Logging in...' : 'Login'}
+                    </button>
                 </form>
                 <p className="auth-link">
                     Don't have an account? <Link to="/signup">Sign Up</Link>

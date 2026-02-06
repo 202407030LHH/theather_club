@@ -4,22 +4,20 @@ import CreatePost from './CreatePost';
 import { useAppContext } from '../context/AppContext';
 
 const Feed = () => {
-    const { posts } = useAppContext();
+    const { posts, loading } = useAppContext();
 
-    // Sort by time descending
-    const sortedPosts = [...posts].sort((a, b) => new Date(b.time) - new Date(a.time));
+    // created_at 기준 내림차순 정렬
+    const sortedPosts = [...posts].sort((a, b) =>
+        new Date(b.created_at) - new Date(a.created_at)
+    );
 
-    // Helper to format visual time (simple version)
-    const formatTime = (isoString) => {
-        const date = new Date(isoString);
-        const now = new Date();
-        const diff = (now - date) / 1000; // seconds
-
-        if (diff < 60) return 'Just now';
-        if (diff < 3600) return `${Math.floor(diff / 60)} mins ago`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-        return date.toLocaleDateString();
-    };
+    if (loading) {
+        return (
+            <div className="feed-container">
+                <div className="loading-message">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="feed-container">
@@ -27,11 +25,14 @@ const Feed = () => {
             {sortedPosts.map(post => (
                 <PostCard
                     key={post.id}
-                    author={post.authorName}
-                    time={formatTime(post.time)}
                     {...post}
                 />
             ))}
+            {sortedPosts.length === 0 && (
+                <div className="empty-feed">
+                    <p>No posts yet. Be the first to share something!</p>
+                </div>
+            )}
         </div>
     );
 };

@@ -11,6 +11,7 @@ const SignUp = () => {
         name: ''
     });
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { signUp } = useAppContext();
     const navigate = useNavigate();
 
@@ -18,18 +19,29 @@ const SignUp = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+
         if (formData.password !== formData.confirmPassword) {
             setError("Passwords do not match");
             return;
         }
+
+        setIsSubmitting(true);
+
         try {
-            signUp({ id: formData.id, password: formData.password, name: formData.name });
+            await signUp({
+                id: formData.id,
+                password: formData.password,
+                name: formData.name
+            });
             alert("Registration successful! Please login.");
             navigate('/login');
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Registration failed. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -42,32 +54,54 @@ const SignUp = () => {
                     <div className="form-group">
                         <label>Name</label>
                         <input
-                            type="text" name="name" required
-                            value={formData.name} onChange={handleChange}
+                            type="text"
+                            name="name"
+                            required
+                            value={formData.name}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
                         />
                     </div>
                     <div className="form-group">
                         <label>Username (ID)</label>
                         <input
-                            type="text" name="id" required
-                            value={formData.id} onChange={handleChange}
+                            type="text"
+                            name="id"
+                            required
+                            value={formData.id}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
                         />
                     </div>
                     <div className="form-group">
                         <label>Password</label>
                         <input
-                            type="password" name="password" required
-                            value={formData.password} onChange={handleChange}
+                            type="password"
+                            name="password"
+                            required
+                            value={formData.password}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
                         />
                     </div>
                     <div className="form-group">
                         <label>Confirm Password</label>
                         <input
-                            type="password" name="confirmPassword" required
-                            value={formData.confirmPassword} onChange={handleChange}
+                            type="password"
+                            name="confirmPassword"
+                            required
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
                         />
                     </div>
-                    <button type="submit" className="primary-btn full-width">Sign Up</button>
+                    <button
+                        type="submit"
+                        className="primary-btn full-width"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Signing up...' : 'Sign Up'}
+                    </button>
                 </form>
                 <p className="auth-link">
                     Already have an account? <Link to="/login">Login</Link>

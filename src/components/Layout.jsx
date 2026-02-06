@@ -8,8 +8,10 @@ import '../styles/layout.css';
 const Layout = ({ children }) => {
     const { users } = useAppContext();
 
-    // Get latest 5 members
-    const latestMembers = [...users].sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt)).slice(0, 5);
+    // Get latest 5 members (DB에서는 joined_at 사용)
+    const latestMembers = [...users]
+        .sort((a, b) => new Date(b.joined_at || b.joinedAt) - new Date(a.joined_at || a.joinedAt))
+        .slice(0, 5);
 
     return (
         <div className="app-layout">
