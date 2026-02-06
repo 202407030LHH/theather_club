@@ -101,9 +101,42 @@ export const AppProvider = ({ children }) => {
             authorId: currentUser.id,
             authorName: currentUser.name,
             time: new Date().toISOString(),
+            comments: [],
+            likes: 0,
             ...postData
         };
         setPosts([newPost, ...posts]);
+    };
+
+    const addComment = (postId, commentText) => {
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                const newComment = {
+                    id: Date.now(),
+                    authorId: currentUser.id,
+                    authorName: currentUser.name,
+                    text: commentText,
+                    time: new Date().toISOString()
+                };
+                return {
+                    ...post,
+                    comments: [...(post.comments || []), newComment]
+                };
+            }
+            return post;
+        }));
+    };
+
+    const toggleLike = (postId) => {
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                return {
+                    ...post,
+                    likes: (post.likes || 0) + 1
+                };
+            }
+            return post;
+        }));
     };
 
     const updateUserRole = (targetUserId, newRoleKey) => {
@@ -120,6 +153,8 @@ export const AppProvider = ({ children }) => {
         login,
         logout,
         createPost,
+        addComment,
+        toggleLike,
         updateUserRole,
         USER_ROLES
     };
