@@ -5,6 +5,10 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
+import Notices from './pages/Notices';
+import Calendar from './pages/Calendar';
+import Photos from './pages/Photos';
+import Members from './pages/Members';
 import './styles/global.css';
 
 // Protected Wrap
@@ -22,13 +26,37 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
 
+          {/* 메인 라우트들 */}
           <Route path="/" element={
             <Layout>
               <Home />
             </Layout>
           } />
 
-          {/* Placeholders for other routes to avoid errors if clicked */}
+          <Route path="/notices" element={
+            <Layout>
+              <Notices />
+            </Layout>
+          } />
+
+          <Route path="/calendar" element={
+            <Layout>
+              <Calendar />
+            </Layout>
+          } />
+
+          <Route path="/photos" element={
+            <Layout>
+              <Photos />
+            </Layout>
+          } />
+
+          <Route path="/members" element={
+            <Layout>
+              <Members />
+            </Layout>
+          } />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

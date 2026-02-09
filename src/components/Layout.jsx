@@ -27,9 +27,9 @@ const Layout = ({ children }) => {
                             <Mic2 size={20} />
                             <span>Notices</span>
                         </NavLink>
-                        <NavLink to="/schedule" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                        <NavLink to="/calendar" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                             <Calendar size={20} />
-                            <span>Schedule</span>
+                            <span>Calendar</span>
                         </NavLink>
                         <NavLink to="/photos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                             <Image size={20} />

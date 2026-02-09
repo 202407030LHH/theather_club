@@ -134,6 +134,25 @@ export const uploadAPI = {
     },
 };
 
+// ============ Notices API ============
+
+export const noticesAPI = {
+    // 공지사항 목록
+    getAll: () =>
+        fetchAPI('/notices'),
+
+    // 공지사항 작성
+    create: (noticeData) =>
+        fetchAPI('/notices', {
+            method: 'POST',
+            body: JSON.stringify(noticeData)
+        }),
+
+    // 공지사항 삭제
+    delete: (id) =>
+        fetchAPI(`/notices/${id}`, { method: 'DELETE' }),
+};
+
 // 서버 이미지 URL 생성 헬퍼
 export const getImageUrl = (path) => {
     if (!path) return null;

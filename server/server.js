@@ -8,6 +8,7 @@ const { initDatabase } = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const noticeRoutes = require('./routes/noticeRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/notices', noticeRoutes);
 
 // 프론트엔드 정적 파일 서빙 (배포 시 사용)
 const frontendBuildPath = path.join(__dirname, '../dist');
