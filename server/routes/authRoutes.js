@@ -1,16 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../config/db');
+const { getDb, saveDatabase } = require('../config/db');
 const bcrypt = require('bcryptjs');
+
+// 결과를 객체 배열로 변환하는 헬퍼 함수
+const toObjects = (result) => {
+    if (!result || result.length === 0) return [];
+    const columns = result[0].columns;
+    return result[0].values.map(row => {
+        const obj = {};
+        columns.forEach((col, i) => {
+            obj[col] = row[i];
+        });
+        return obj;
+    });
+};
 
 // 회원가입
 router.post('/signup', async (req, res) => {
     try {
         const { id, password, name } = req.body;
+        const db = getDb();
 
         // 중복 확인
-        const [existing] = await pool.query('SELECT id FROM users WHERE id = ?', [id]);
-        if (existing.length > 0) {
+        const existing = db.exec(`SELECT id FROM users WHERE id = '${id}'`);
+        if (existing.length > 0 && existing[0].values.length > 0) {
             return res.status(400).json({ error: 'ID already exists' });
         }
 
@@ -18,10 +32,8 @@ router.post('/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // 사용자 생성
-        await pool.query(
-            'INSERT INTO users (id, name, password, role) VALUES (?, ?, ?, ?)',
-            [id, name, hashedPassword, 'GUEST']
-        );
+        db.run(`INSERT INTO users (id, name, password, role) VALUES ('${id}', '${name}', '${hashedPassword}', 'GUEST')`);
+        saveDatabase();
 
         res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
@@ -34,8 +46,10 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { id, password } = req.body;
+        const db = getDb();
 
-        const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
+        const result = db.exec(`SELECT * FROM users WHERE id = '${id}'`);
+        const users = toObjects(result);
 
         if (users.length === 0) {
             return res.status(401).json({ error: 'Invalid ID or Password' });
@@ -64,11 +78,11 @@ router.post('/login', async (req, res) => {
 });
 
 // 전체 사용자 목록 (관리자용)
-router.get('/users', async (req, res) => {
+router.get('/users', (req, res) => {
     try {
-        const [users] = await pool.query(
-            'SELECT id, name, role, joined_at FROM users ORDER BY joined_at DESC'
-        );
+        const db = getDb();
+        const result = db.exec('SELECT id, name, role, joined_at FROM users ORDER BY joined_at DESC');
+        const users = toObjects(result);
         res.json(users);
     } catch (error) {
         console.error('Get users error:', error);
@@ -77,12 +91,15 @@ router.get('/users', async (req, res) => {
 });
 
 // 사용자 등급 변경
-router.put('/users/:id/role', async (req, res) => {
+router.put('/users/:id/role', (req, res) => {
     try {
         const { id } = req.params;
         const { role } = req.body;
+        const db = getDb();
 
-        await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+        db.run(`UPDATE users SET role = '${role}' WHERE id = '${id}'`);
+        saveDatabase();
+
         res.json({ message: 'Role updated successfully' });
     } catch (error) {
         console.error('Update role error:', error);

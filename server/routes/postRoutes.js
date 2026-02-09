@@ -1,26 +1,34 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../config/db');
+const { getDb, saveDatabase } = require('../config/db');
+
+// 결과를 객체 배열로 변환하는 헬퍼 함수
+const toObjects = (result) => {
+    if (!result || result.length === 0) return [];
+    const columns = result[0].columns;
+    return result[0].values.map(row => {
+        const obj = {};
+        columns.forEach((col, i) => {
+            obj[col] = row[i];
+        });
+        return obj;
+    });
+};
 
 // 게시물 목록 조회
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
     try {
-        const [posts] = await pool.query(
-            'SELECT * FROM posts ORDER BY created_at DESC'
-        );
+        const db = getDb();
+        const postsResult = db.exec('SELECT * FROM posts ORDER BY created_at DESC');
+        const posts = toObjects(postsResult);
 
         // 각 게시물에 댓글과 첨부파일 추가
         for (let post of posts) {
-            const [comments] = await pool.query(
-                'SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC',
-                [post.id]
-            );
-            const [attachments] = await pool.query(
-                'SELECT * FROM attachments WHERE post_id = ?',
-                [post.id]
-            );
-            post.comments = comments;
-            post.attachments = attachments;
+            const commentsResult = db.exec(`SELECT * FROM comments WHERE post_id = ${post.id} ORDER BY created_at ASC`);
+            post.comments = toObjects(commentsResult);
+
+            const attachmentsResult = db.exec(`SELECT * FROM attachments WHERE post_id = ${post.id}`);
+            post.attachments = toObjects(attachmentsResult);
         }
 
         res.json(posts);
@@ -31,30 +39,33 @@ router.get('/', async (req, res) => {
 });
 
 // 게시물 작성
-router.post('/', async (req, res) => {
+router.post('/', (req, res) => {
     try {
         const { author_id, author_name, title, content, image_url, attachments } = req.body;
+        const db = getDb();
 
-        const [result] = await pool.query(
-            'INSERT INTO posts (author_id, author_name, title, content, image_url) VALUES (?, ?, ?, ?, ?)',
-            [author_id, author_name, title || null, content, image_url || null]
-        );
+        const titleVal = title ? `'${title}'` : 'NULL';
+        const imageVal = image_url ? `'${image_url}'` : 'NULL';
 
-        const postId = result.insertId;
+        db.run(`INSERT INTO posts (author_id, author_name, title, content, image_url) VALUES ('${author_id}', '${author_name}', ${titleVal}, '${content}', ${imageVal})`);
+
+        // 마지막 삽입된 ID 가져오기
+        const lastIdResult = db.exec('SELECT last_insert_rowid() as id');
+        const postId = lastIdResult[0].values[0][0];
 
         // 첨부파일 저장
         if (attachments && attachments.length > 0) {
             for (const att of attachments) {
-                await pool.query(
-                    'INSERT INTO attachments (post_id, file_name, file_path) VALUES (?, ?, ?)',
-                    [postId, att.name, att.path || '']
-                );
+                db.run(`INSERT INTO attachments (post_id, file_name, file_path) VALUES (${postId}, '${att.name}', '${att.path || ''}')`);
             }
         }
 
+        saveDatabase();
+
         // 생성된 게시물 반환
-        const [newPost] = await pool.query('SELECT * FROM posts WHERE id = ?', [postId]);
-        res.status(201).json(newPost[0]);
+        const newPostResult = db.exec(`SELECT * FROM posts WHERE id = ${postId}`);
+        const newPost = toObjects(newPostResult)[0];
+        res.status(201).json(newPost);
     } catch (error) {
         console.error('Create post error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -62,50 +73,40 @@ router.post('/', async (req, res) => {
 });
 
 // 좋아요
-router.post('/:id/like', async (req, res) => {
+router.post('/:id/like', (req, res) => {
     try {
         const { id } = req.params;
+        const db = getDb();
 
-        await pool.query('UPDATE posts SET likes = likes + 1 WHERE id = ?', [id]);
+        db.run(`UPDATE posts SET likes = likes + 1 WHERE id = ${id}`);
+        saveDatabase();
 
-        const [post] = await pool.query('SELECT likes FROM posts WHERE id = ?', [id]);
-        res.json({ likes: post[0].likes });
+        const result = db.exec(`SELECT likes FROM posts WHERE id = ${id}`);
+        const likes = result[0].values[0][0];
+        res.json({ likes });
     } catch (error) {
         console.error('Like post error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-// 댓글 목록 조회
-router.get('/:id/comments', async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const [comments] = await pool.query(
-            'SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC',
-            [id]
-        );
-
-        res.json(comments);
-    } catch (error) {
-        console.error('Get comments error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
 // 댓글 작성
-router.post('/:id/comments', async (req, res) => {
+router.post('/:id/comments', (req, res) => {
     try {
         const { id } = req.params;
         const { author_id, author_name, text } = req.body;
+        const db = getDb();
 
-        const [result] = await pool.query(
-            'INSERT INTO comments (post_id, author_id, author_name, text) VALUES (?, ?, ?, ?)',
-            [id, author_id, author_name, text]
-        );
+        db.run(`INSERT INTO comments (post_id, author_id, author_name, text) VALUES (${id}, '${author_id}', '${author_name}', '${text}')`);
 
-        const [newComment] = await pool.query('SELECT * FROM comments WHERE id = ?', [result.insertId]);
-        res.status(201).json(newComment[0]);
+        const lastIdResult = db.exec('SELECT last_insert_rowid() as id');
+        const commentId = lastIdResult[0].values[0][0];
+
+        saveDatabase();
+
+        const newCommentResult = db.exec(`SELECT * FROM comments WHERE id = ${commentId}`);
+        const newComment = toObjects(newCommentResult)[0];
+        res.status(201).json(newComment);
     } catch (error) {
         console.error('Create comment error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -113,11 +114,16 @@ router.post('/:id/comments', async (req, res) => {
 });
 
 // 게시물 삭제
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (req, res) => {
     try {
         const { id } = req.params;
+        const db = getDb();
 
-        await pool.query('DELETE FROM posts WHERE id = ?', [id]);
+        db.run(`DELETE FROM attachments WHERE post_id = ${id}`);
+        db.run(`DELETE FROM comments WHERE post_id = ${id}`);
+        db.run(`DELETE FROM posts WHERE id = ${id}`);
+        saveDatabase();
+
         res.json({ message: 'Post deleted successfully' });
     } catch (error) {
         console.error('Delete post error:', error);
